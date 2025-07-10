@@ -1,4 +1,12 @@
-"""Minimal text classification example using data parallelism."""
+"""Train a text classifier with data parallelism.
+
+This lab script illustrates the bare minimum needed to launch a distributed
+training job with the HuggingFace ``Trainer``.  It uses the AG News dataset and
+the ``distilroberta-base`` model by default.  When executed with ``torchrun``
+each process will receive a different chunk of data and gradients will be
+aggregated automatically.  Pass ``--dry_run`` to run a tiny subset on CPU for
+teaching or debugging.
+"""
 
 import argparse
 import os
@@ -40,9 +48,11 @@ def main():
     )
     args = parser.parse_args()
 
+    # ``init_distributed`` sets up the torch distributed environment so that
+    # the Trainer can automatically perform gradient reduction across processes.
     init_distributed(args.local_rank)
 
-    # Load a small text classification dataset and tokenizer
+    # Load a small text classification dataset and tokenizer.
     dataset = load_dataset("ag_news")
     tokenizer = AutoTokenizer.from_pretrained(args.model)
 
@@ -59,7 +69,8 @@ def main():
 
     model = AutoModelForSequenceClassification.from_pretrained(args.model, num_labels=4)
 
-    # TrainingArguments control the training loop and distributed setup
+    # ``TrainingArguments`` control the HuggingFace ``Trainer`` loop and carry
+    # information about batch size, learning rate and distributed configuration.
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         per_device_train_batch_size=args.batch_size,
@@ -79,6 +90,8 @@ def main():
         train_ds = train_ds.select(range(64))
         eval_ds = eval_ds.select(range(64))
 
+    # ``Trainer`` wraps the typical PyTorch training boilerplate so the example
+    # stays focused on the data parallel aspects.
     trainer = Trainer(
         model=model,
         args=training_args,

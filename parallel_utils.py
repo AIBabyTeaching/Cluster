@@ -1,11 +1,12 @@
 """Utility helpers for distributed training.
 
-These functions wrap ``torch.distributed`` initialization so that the same
-training scripts can run both locally on a single process and on a
-multi-node cluster.  When ``WORLD_SIZE`` is greater than ``1`` we prefer the
-``nccl`` backend if GPUs are available and fall back to ``gloo`` for CPU-only
-clusters.  A single-process "gloo" setup keeps the code path consistent during
-dry runs.
+The functions in this module hide the boilerplate required to set up
+``torch.distributed`` so that the exact same training scripts can execute on
+a single laptop or across many nodes in a cluster.  When ``WORLD_SIZE`` is
+greater than ``1`` we attempt to use the high performance ``nccl`` backend if
+GPUs are available. On CPU clusters we fall back to ``gloo``. Initialising a
+"gloo" process group even when ``WORLD_SIZE`` equals ``1`` keeps the code path
+consistent during dry runs and simplifies debugging.
 """
 
 import os
@@ -19,8 +20,12 @@ def init_distributed(local_rank: int) -> None:
     Parameters
     ----------
     local_rank : int
-        GPU index assigned by ``torchrun``.  When running a CPU-only dry run this
-        value defaults to ``0``.
+        Device index assigned by ``torchrun``. During a CPU-only dry run this
+        defaults to ``0`` so that the code path is identical to multi-GPU runs.
+
+    This function reads ``WORLD_SIZE`` from the environment to decide whether
+    to create a multi-process group. By wrapping this logic we avoid duplicating
+    boilerplate across all training scripts.
     """
 
     world = int(os.environ.get("WORLD_SIZE", 1))
@@ -41,10 +46,12 @@ def world_size() -> int:
 
 
 def is_main_process() -> bool:
-    """Return ``True`` on rank 0.
+    """Return ``True`` only on rank 0.
 
-    This is useful for logging or saving models only once when running under
-    data parallelism.
+    Many training loops need to perform certain actions exactly once such as
+    logging metrics or saving model checkpoints.  By querying this helper the
+    scripts can stay agnostic to whether they are running with multiple
+    processes or a single process.
     """
 
     return (not dist.is_initialized()) or dist.get_rank() == 0

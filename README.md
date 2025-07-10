@@ -4,6 +4,8 @@ This repository contains example code for training and deploying small language 
 
 The code relies on **torch.distributed** and the HuggingFace `Trainer` to demonstrate four key concepts:
 
+See [docs/overview.md](docs/overview.md) for a guided tour of the codebase.
+
 1. **Data Parallelism** – replicate the model across devices and split batches of data.
 2. **Model Parallelism** – partition model layers across devices.
 3. **Pipeline Parallelism** – sequence model stages across processes.
