@@ -73,3 +73,34 @@ python labs/ragging/rag_example.py --query "What is deep learning?"
 ```
 
 These scripts are minimal and intended for instructional purposes. Adjust batch sizes and epochs to fit your cluster resources.
+
+## Docker-Based Multi-Node Training
+
+The repository includes utilities to build a container image and launch
+`fine_tune_tinyllama.py` across multiple hosts. First start a local Docker
+registry:
+
+```bash
+docker run -d -p 5000:5000 --name registry registry:2
+```
+
+Build and push the image:
+
+```bash
+./scripts/push_image.sh
+```
+
+On each node set the environment variables and deploy:
+
+```bash
+export MASTER_IP=<ip-of-node0>
+export NUM_NODES=3
+export PROCS_PER_NODE=4
+export BATCH=1
+export EPOCHS=1
+./scripts/deploy_nodes.sh
+```
+
+`deploy_nodes.sh` runs `torchrun` inside the container with `--network host` so
+the rendezvous uses the host IP/port, mirroring
+[PyTorch's multi-node example](https://pytorch.org/docs/stable/elastic/run.html#distributed-running).
