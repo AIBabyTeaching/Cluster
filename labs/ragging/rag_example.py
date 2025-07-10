@@ -1,4 +1,10 @@
-"""Simple Retrieval-Augmented Generation (RAG) demonstration."""
+"""Simple Retrieval-Augmented Generation (RAG) demonstration.
+
+This example fetches a small subset of Wikipedia passages and shows how the RAG
+model can incorporate retrieved documents into the generation process. It also
+supports a ``--dry_run`` flag to limit the number of documents for a quick
+classroom demo.
+"""
 
 import argparse
 import os
@@ -34,17 +40,23 @@ def main():
 
     init_distributed(args.local_rank)
 
-    # Restrict the dataset when running a dry run to speed things up
+    # Restrict the dataset when running a dry run to speed things up. This keeps
+    # the demo lightweight while still exercising the retrieval mechanics.
     split = "train[:50]" if args.dry_run else "train[:500]"
     dataset = load_dataset(args.dataset, args.subset, split=split)
     tokenizer = RagTokenizer.from_pretrained(args.model_name)
-    retriever = RagRetriever.from_pretrained(args.model_name, index_name=args.index_name, passages_path=None)
-    model = RagSequenceForGeneration.from_pretrained(args.model_name, retriever=retriever)
+    retriever = RagRetriever.from_pretrained(
+        args.model_name, index_name=args.index_name, passages_path=None
+    )
+    model = RagSequenceForGeneration.from_pretrained(
+        args.model_name, retriever=retriever
+    )
 
     inputs = tokenizer(args.query, return_tensors="pt")
     with torch.no_grad():
         generated = model.generate(**inputs)
     if is_main_process():
+        # Decode and print the generated answer only once from rank 0.
         print(tokenizer.batch_decode(generated, skip_special_tokens=True)[0])
 
 

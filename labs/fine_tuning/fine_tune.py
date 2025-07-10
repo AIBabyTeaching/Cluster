@@ -1,4 +1,10 @@
-"""Fine-tune a causal language model with optional distributed training."""
+"""Fine-tune a causal language model.
+
+This example mirrors the official HuggingFace trainer script but integrates the
+helper functions from ``parallel_utils`` so the exact same code can run on a
+laptop or on a multi-node cluster. Use ``--dry_run`` to limit the dataset for
+fast debugging.
+"""
 
 import argparse
 import os
@@ -53,7 +59,8 @@ def main():
     def tokenize(batch):
         return tokenizer(batch['text'], truncation=True, padding='max_length', max_length=128)
 
-    # Tokenize the entire dataset upfront
+    # Tokenize the entire dataset upfront so training doesn't spend time
+    # converting text to ids inside the training loop.
     tokenized = dataset.map(tokenize, batched=True)
     tokenized = tokenized.remove_columns(["text"])
     tokenized.set_format("torch")
@@ -83,7 +90,8 @@ def main():
         args=training_args,
         train_dataset=train_ds,
     )
-
+    # ``Trainer`` handles the training loop including gradient accumulation and
+    # distributed communication under the hood.
     trainer.train()
     if is_main_process():
         trainer.save_model(args.output_dir)

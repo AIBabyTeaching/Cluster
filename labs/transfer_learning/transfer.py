@@ -1,4 +1,9 @@
-"""Demonstrates transfer learning on the IMDB dataset."""
+"""Demonstrates transfer learning on the IMDB dataset.
+
+The script adds a classification head on top of a pretrained encoder and fine
+tunes it on movie reviews. It reuses the same distributed setup helpers as the
+other labs so that you can scale out the experiment with ``torchrun``.
+"""
 
 import argparse
 import os
@@ -36,6 +41,7 @@ def main():
     )
     args = parser.parse_args()
 
+    # Set up the process group so that the Trainer will synchronize gradients.
     init_distributed(args.local_rank)
 
     # Load the movie review dataset and tokenizer
@@ -76,6 +82,7 @@ def main():
         train_dataset=train_ds,
         eval_dataset=eval_ds,
     )
+    # ``Trainer`` manages the training loop and distributed synchronization.
     trainer.train()
     if is_main_process():
         trainer.save_model(args.output_dir)
