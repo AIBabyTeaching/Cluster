@@ -8,38 +8,28 @@ python3.11 -m venv llamaenv_local
 source ~/llamaenv_local/bin/activate
 
 # 3. Install everything you need
-pip install --upgrade pip
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-pip install accelerate transformers[torch]
+# Add the requirements file provided in the course in your local envrionemnt
+pip install -r requirements.txt
 
-# 4. Go back to your project and run
-cd ~/mrmito/project
-PYTHONPATH=. python labs/simple_model/train_simple.py --dry_run
+# 4. SFTP to your cluster
+# Download the SFTP extension in VS Code
+# Create the sftp.json inside .vscode like the following
+{
+  "name": "Mito-EntryPoint",
+  "protocol": "sftp",
+  "host": "10.1.8.4",
+  "port": 22,
+  "username": "metwalli_st@student.aast.edu",
+  "password": "---------",
+  "remotePath": "/home/metwalli_st@student.aast.edu/project",
+  "uploadOnSave": false,
+  "syncMode": "update",
+  "watcher": {
+    "files": "**/*",
+    "autoUpload": false,
+    "autoDelete": false
+  }
 
-# echo "alias llamaenv='source /opt/llamaenv/bin/activate'" >> ~/.bashrc
-# wget https://github.com/chaos/pdsh/releases/download/pdsh-2.33/pdsh-2.33.tar.gz
-# tar xzf pdsh-2.33.tar.gz
-# cd pdsh-2.33
-# make distclean
-'''./configure --prefix=$HOME/.local \
-            --with-ssh \
-            --without-slurm \
-            --without-shmem'''
-# make -j$(nproc)
-# make install
-# echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
-# source ~/.bashrc
-# which pdsh
-# pdsh --version
-
-# 1. Make a cache directory in your home
-mkdir -p ~/hf_cache/{datasets,hub}
-
-# 2. Export HF environment variables
-export HF_DATASETS_CACHE=~/hf_cache/datasets
-export HF_HOME=~/hf_cache/hub
-
-# 3. Run your training script normally
-python labs/simple_model/train_simple.py --dry_run
+# 5. Now check your files directory
 
 
