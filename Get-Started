@@ -31,6 +31,7 @@ source ~/llamaenv_local/bin/activate
 pip install -r requirements.txt
 
 
-# 4. Now check your files directory
+# 4. Now each time, activate your cluster environment and check your files directory
+source ~/llamaenv_local/bin/activate
 
-
+# Another Tip you can add source ~/llamaenv_local/bin/activate in your bashrc as an alias to make it easier to call the env.
