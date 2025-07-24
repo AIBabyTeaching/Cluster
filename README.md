@@ -16,7 +16,17 @@ This repository contains four labs for getting comfortable with a Slurm based cl
 4. **Lab 3 – Transfer & RAG**
    - Covers transfer learning (`labs/transfer_learning`) and a small retrieval‑augmented generation demo (`labs/ragging`).
 
+
 Refer to [docs/overview.md](docs/overview.md) for a detailed tour of the code.
+
+## Learning Outcomes
+
+After completing these labs you will be able to:
+
+- Establish a secure SFTP workflow with VS Code.
+- Create and manage isolated Python environments on the cluster.
+- Submit, monitor and cancel jobs through Slurm.
+- Experiment with distributed training, transfer learning and RAG pipelines.
 
 ## Utilities
 
@@ -52,9 +62,22 @@ Run these tools with `python utils/<tool>.py`.
       ```
    3. Launch `python utils/Connect2Cluster.py` or choose *SFTP → Open SSH in Terminal* to log in.
 3. **Environment Setup**
-   1. Create a Python virtual environment on the cluster.
-   2. Upload `requirements.txt` and **then** run `pip install -r requirements.txt` inside that environment. Installing locally is not required.
-   3. Copy your project files via SFTP.
+   1. After logging in, enable the system Python and create a fresh virtual environment:
+      ```bash
+      source /opt/bin/llamaenv/activate
+      cd ~
+      python3.11 -m venv llamaenv_local
+      ```
+   2. Activate the environment and install the course requirements (upload `requirements.txt` first):
+      ```bash
+      source ~/llamaenv_local/bin/activate
+      pip install -r requirements.txt
+      ```
+   3. Reactivate the environment whenever you start a terminal session:
+      ```bash
+      source ~/llamaenv_local/bin/activate
+      ```
+      Consider adding this command to `~/.bashrc` or defining an alias for convenience.
 4. **Smoke Test**
    Save the following as `smoke.sbatch` and submit with `sbatch smoke.sbatch`:
    ```bash
