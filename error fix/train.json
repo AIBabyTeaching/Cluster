@@ -1,6 +1,0 @@
-[
-  {"instruction": "What is the capital of France?", "response": "The capital of France is Paris."},
-  {"instruction": "What is 5 multiplied by 7?", "response": "5 multiplied by 7 is 35."},
-  {"instruction": "Explain what a GPU does.", "response": "A GPU is a processor optimized for graphics and parallel computations."}
-]
-
