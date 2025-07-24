@@ -17,7 +17,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from parallel_utils import init_distributed, is_main_process
+from utils.parallel_utils import init_distributed, is_main_process
 
 
 def main():

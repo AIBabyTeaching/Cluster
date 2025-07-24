@@ -4,7 +4,7 @@ This document explains the main components in the repository and how they tie to
 
 ## Common Utilities
 
-`parallel_utils.py` contains helper functions that wrap `torch.distributed` initialization. The `init_distributed` function configures either NCCL or Gloo backends based on whether GPUs are available. `world_size()` and `is_main_process()` provide simple helpers for querying the distributed environment.
+`utils/parallel_utils.py` contains helper functions that wrap `torch.distributed` initialization. The `init_distributed` function configures either NCCL or Gloo backends based on whether GPUs are available. `world_size()` and `is_main_process()` provide simple helpers for querying the distributed environment.
 
 ## Fine Tuning TinyLlama
 

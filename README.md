@@ -1,108 +1,86 @@
-# LLM Parallelism Labs
+# Cluster Labs
 
-This repository contains example code for training and deploying small language models with different parallelism strategies. The labs are designed for a cluster environment (CPU-only by default) and focus on data parallelism, model fine-tuning, transfer learning, and retrieval-augmented generation (RAG).
+![Cluster](docs/Cluster.gif)
 
-The code relies on **torch.distributed** and the HuggingFace `Trainer` to demonstrate four key concepts:
+This repository contains four labs for getting comfortable with a Slurm based cluster and experimenting with distributed language model training.  The material and code were prepared by **Ahmed Métwalli** ([ResearchGate](https://www.researchgate.net/profile/Ahmed-Metwalli), [LinkedIn](https://www.linkedin.com/in/ahmed-m%C3%A9twalli/)), affiliated with the **AASTMT Alamein Campus College of Artificial Intelligence**.
 
-See [docs/overview.md](docs/overview.md) for a guided tour of the codebase.
+## Lab Overview
 
-1. **Data Parallelism** – replicate the model across devices and split batches of data.
-2. **Model Parallelism** – partition model layers across devices.
-3. **Pipeline Parallelism** – sequence model stages across processes.
-4. **Tensor Parallelism** – shard individual weight matrices for extreme scale.
+1. **Lab 0 – Getting Started**
+   - Walks you through connecting to the cluster via FortiClient SSL‑VPN and an SFTP workflow inside VS Code.
+   - Introduces basic Slurm commands and provides a 30 second smoke test script.
+2. **Lab 1 – Simple Model**
+   - Data parallel text classification example located in `labs/simple_model`.
+3. **Lab 2 – Fine Tuning**
+   - Fine tune a causal language model using HuggingFace trainer (`labs/fine_tuning`).
+4. **Lab 3 – Transfer & RAG**
+   - Covers transfer learning (`labs/transfer_learning`) and a small retrieval‑augmented generation demo (`labs/ragging`).
 
-## Setup
+Refer to [docs/overview.md](docs/overview.md) for a detailed tour of the code.
 
-1. Install Python dependencies:
+## Utilities
 
-```bash
-pip install -r requirements.txt
+All helper scripts live inside the `utils` directory:
+
+- `utils/Connect2Cluster.py` – Paramiko based interactive SSH client that keeps your terminal responsive while forwarding Ctrl‑C and resize events.
+- `utils/checker.py` – Collect information about the cluster: `sinfo`, `scontrol`, system limits and loaded modules.
+- `utils/parallel_utils.py` – Thin wrappers around `torch.distributed` initialization used by all training scripts.
+
+Run these tools with `python utils/<tool>.py`.
+
+## Getting Started (Lab 0)
+
+1. **Connect through FortiClient VPN**
+   1. Install the VPN‑only edition from Fortinet.
+   2. Create a new *SSL‑VPN* connection targeting `https://sslvpn.aast.edu:443/HPCGrid`.
+   3. Save your campus credentials and connect.
+2. **VS Code SFTP Workflow**
+   1. Install the "SFTP" extension by *liximomo*.
+   2. Add `.vscode/sftp.json` similar to:
+      ```json
+      {
+        "name": "Mito-EntryPoint",
+        "protocol": "sftp",
+        "host": "10.1.8.4",
+        "port": 22,
+        "username": "<your username>",
+        "password": "<password>",
+        "remotePath": "/home/<user>/project",
+        "uploadOnSave": false,
+        "syncMode": "update"
+      }
+      ```
+   3. Launch `python utils/Connect2Cluster.py` or choose *SFTP → Open SSH in Terminal* to log in.
+3. **Environment Setup**
+   1. Create a Python virtual environment on the cluster.
+   2. Upload `requirements.txt` and **then** run `pip install -r requirements.txt` inside that environment. Installing locally is not required.
+   3. Copy your project files via SFTP.
+4. **Smoke Test**
+   Save the following as `smoke.sbatch` and submit with `sbatch smoke.sbatch`:
+   ```bash
+   #!/bin/bash
+   #SBATCH -J smoke_test
+   #SBATCH -o smoke_%j.out
+   #SBATCH -e smoke_%j.err
+   #SBATCH -N 1 -n 1
+   #SBATCH -t 00:00:30
+
+   echo "Node: $(hostname)"
+   echo "Start: $(date)"
+   sleep 5
+   echo "End  : $(date)"
+   ```
+   Monitor jobs with `squeue -u $USER` and cancel with `scancel <jobID>` if needed.
+
+## Typical Slurm Commands
+
+```
+# Partition status
+sinfo -R -o "%P %.6t %.6D %.15f"
+# Your jobs with reason
+squeue -u $USER -o "%.9i %.2t %.10M %.15R"
+# Cancel a job
+scancel <jobID>
 ```
 
-2. Launch multi-node jobs with `torchrun` or `deepspeed`. Example for a CPU-only cluster with two processes on one node:
-
-```bash
-torchrun --nnodes 1 --nproc_per_node 2 labs/simple_model/train_simple.py --epochs 1
-```
-
-### Local Dry Run
-
-All training scripts accept a `--dry_run` flag which processes only a handful of
-samples and runs on CPU. This is useful when experimenting without a cluster:
-
-```bash
-python labs/simple_model/train_simple.py --dry_run
-```
-
-### Cluster Launch
-
-On clusters using a workload manager like **Slurm**, jobs can be submitted with
-``torchrun`` inside a batch script.  A template is provided in
-`scripts/slurm_job.sh`:
-
-```bash
-sbatch scripts/slurm_job.sh
-```
-
-## Labs Overview
-
-### Simple Model
-Train a text classifier on the AG News dataset using data parallelism:
-
-```bash
-torchrun --nproc_per_node 2 labs/simple_model/train_simple.py --epochs 1
-```
-
-### Fine Tuning
-Fine-tune a causal language model on WikiText:
-
-```bash
-torchrun --nproc_per_node 2 labs/fine_tuning/fine_tune.py --epochs 1
-```
-
-### Transfer Learning
-Continue training a sequence classifier on the IMDB dataset:
-
-```bash
-torchrun --nproc_per_node 2 labs/transfer_learning/transfer.py --epochs 1
-```
-
-### Retrieval-Augmented Generation
-Run a basic RAG example:
-
-```bash
-python labs/ragging/rag_example.py --query "What is deep learning?"
-```
-
-These scripts are minimal and intended for instructional purposes. Adjust batch sizes and epochs to fit your cluster resources.
-
-## Docker-Based Multi-Node Training
-
-The repository includes utilities to build a container image and launch
-`fine_tune_tinyllama.py` across multiple hosts. First start a local Docker
-registry:
-
-```bash
-docker run -d -p 5000:5000 --name registry registry:2
-```
-
-Build and push the image:
-
-```bash
-./scripts/push_image.sh
-```
-
-On each node set the environment variables and deploy:
-
-```bash
-export MASTER_IP=<ip-of-node0>
-export NUM_NODES=3
-export PROCS_PER_NODE=4
-export BATCH=1
-export EPOCHS=1
-./scripts/deploy_nodes.sh
-```
-
-`deploy_nodes.sh` runs `torchrun` inside the container with `--network host` so
-the rendezvous uses the host IP/port, mirroring
-[PyTorch's multi-node example](https://pytorch.org/docs/stable/elastic/run.html#distributed-running).
+Remember to check that no jobs are running before logging out and sync any results from `/scratch` back to your workstation.

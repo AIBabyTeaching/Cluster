@@ -13,7 +13,7 @@ import torch
 from datasets import load_dataset
 from transformers import RagRetriever, RagTokenizer, RagSequenceForGeneration
 
-from parallel_utils import init_distributed, is_main_process
+from utils.parallel_utils import init_distributed, is_main_process
 
 
 def main():
