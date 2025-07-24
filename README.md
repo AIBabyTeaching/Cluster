@@ -2,7 +2,7 @@
 
 ![Cluster](docs/Cluster.gif)
 
-This repository contains four labs for getting comfortable with a Slurm based cluster and experimenting with distributed language model training.  The material and code were prepared by **Ahmed Métwalli** ([ResearchGate](https://www.researchgate.net/profile/Ahmed-Metwalli), [LinkedIn](https://www.linkedin.com/in/ahmed-m%C3%A9twalli/)), affiliated with the **AASTMT Alamein Campus College of Artificial Intelligence**.
+This repository contains four labs for getting comfortable with a Slurm based cluster and experimenting with distributed language model training.  The material and code were prepared by Assistant Lecturer: **Eng. Ahmed Métwalli** ([ResearchGate](https://www.researchgate.net/profile/Ahmed-Metwalli), [LinkedIn](https://www.linkedin.com/in/ahmed-m%C3%A9twalli/)), affiliated with the **AASTMT Alamein Campus College of Artificial Intelligence**.
 
 ## Lab Overview
 
