@@ -1,17 +1,5 @@
 
-# 1. Create a fresh venv under your home
-source /opt/bin/llamaenv/activate
-cd ~
-python3.11 -m venv llamaenv_local
-
-# 2. Activate it
-source ~/llamaenv_local/bin/activate
-
-# 3. Install everything you need
-# Add the requirements file provided in the course in your local envrionemnt
-pip install -r requirements.txt
-
-# 4. SFTP to your cluster
+# 0. SFTP to your cluster
 # Download the SFTP extension in VS Code
 # Create the sftp.json inside .vscode like the following
 {
@@ -30,6 +18,19 @@ pip install -r requirements.txt
     "autoDelete": false
   }
 
-# 5. Now check your files directory
+# 1. Create a fresh venv under your home
+source /opt/bin/llamaenv/activate
+cd ~
+python3.11 -m venv llamaenv_local
+
+# 2. Activate it
+source ~/llamaenv_local/bin/activate
+
+# 3. Install everything you need
+# Add the requirements file provided in the course in your local envrionemnt
+pip install -r requirements.txt
+
+
+# 4. Now check your files directory
 
 
