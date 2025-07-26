@@ -15,6 +15,8 @@ This repository contains four labs for getting comfortable with a Slurm based cl
    - Fine tune a causal language model using HuggingFace trainer (`labs/fine_tuning`).
 4. **Lab 3 – Transfer & RAG**
    - Covers transfer learning (`labs/transfer_learning`) and a small retrieval‑augmented generation demo (`labs/ragging`).
+5. **Lab 4 – Tiny Model**
+   - Minimal BERT classifier under 1 M parameters in `labs/tiny`.
 
 
 Refer to [docs/overview.md](docs/overview.md) for a detailed tour of the code.
@@ -107,3 +109,47 @@ scancel <jobID>
 ```
 
 Remember to check that no jobs are running before logging out and sync any results from `/scratch` back to your workstation.
+
+## Tiny Model Example
+
+`labs/tiny` contains a lightweight BERT text classifier (<1 M parameters).  The code illustrates distributed training with `torchrun` and includes a small testing script.
+
+### Training
+
+1. Optionally pre-cache the dataset and tokenizer:
+   ```bash
+   python - <<'PY'
+   import os, datasets, transformers
+   os.environ["HF_HOME"] = os.path.expanduser("~/.cache/hf_tiny")
+   datasets.load_dataset("ag_news", split="train[:2000]",
+                         cache_dir=f"{os.environ['HF_HOME']}/ds")
+   transformers.AutoTokenizer.from_pretrained(
+       "google/bert_uncased_L-2_H-128_A-2",
+       cache_dir=f"{os.environ['HF_HOME']}/tok")
+   PY
+   ```
+2. Request a node and launch training:
+   ```bash
+   salloc -N1 -n1 -c2 -p parallel --time=00:05:00 --exclusive
+
+   source ~/llamaenv_local/bin/activate
+   export HF_HOME=$HOME/.cache/hf_tiny
+   export MASTER_ADDR=$(hostname)
+   export MASTER_PORT=$((20000 + RANDOM % 10000))
+
+   torchrun --nproc_per_node=2 \
+     --rdzv_backend=c10d --rdzv_endpoint=${MASTER_ADDR}:${MASTER_PORT} \
+     labs/tiny/train_tiny.py --subset 2000 --epochs 3
+   ```
+   Checkpoints are written to the `tiny_out` directory.
+
+### Testing
+
+Verify the trained model using `test_tiny.py`:
+
+```bash
+export HF_HOME=$HOME/.cache/hf_tiny
+python labs/tiny/test_tiny.py --ckpt tiny_out
+```
+
+The script reports accuracy on a 512-example slice and prints a few sample predictions.
